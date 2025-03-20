@@ -1,6 +1,3 @@
-# Author: Pierre Ablin <pierre.ablin@ens.fr>
-#
-# License: MIT
 import torch
 import numpy as np
 
