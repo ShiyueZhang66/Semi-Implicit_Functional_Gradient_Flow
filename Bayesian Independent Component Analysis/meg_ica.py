@@ -2,12 +2,7 @@
 =======================================
 Bayesian Independent Component Analysis
 =======================================
-"""  # noqa
-
-# Author: Pierre Ablin <pierre.ablin@ens.fr>
-#
-# License: MIT
-
+"""  
 import torch
 from contenders import svgd
 from utils import semigwg,gwg,adasemigwg,adapgwg
