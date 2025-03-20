@@ -1,6 +1,3 @@
-# Author: Pierre Ablin <pierre.ablin@ens.fr>
-#
-# License: MIT
 import numpy as np
 import torch
 from time import time
@@ -31,60 +28,6 @@ def amari_distance(W, A):
 
 def svgd(A,pdim,x0, score, step, max_iter=1000, bw=1, tol=1e-5, verbose=False,
          store=False, backend='auto'):
-    """Stein Variational Gradient Descent
-
-    Sample by optimization with the
-    Stein Variational Gradient Descent with a Gaussian
-    kernel.
-
-    Parameters
-    ----------
-    x0 : torch.tensor or numpy.ndarray, size n_samples x n_features
-        initial positions
-
-    score : callable
-        function that computes the score. Must be compatible with the
-        backend.
-
-    step : float
-        step size
-
-    max_iter : int
-        max numer of iters
-
-    bw : float
-        bandwidth of the Stein kernel
-
-    tol : float
-        tolerance for stopping the algorithm. The
-        algorithm stops when the norm of the SVDG direction
-        is below tol.
-
-    store : bool
-        whether to store the iterates
-
-    verbose : bool
-        whether to print the current loss
-
-    backend : str, 'auto', 'numpy' or 'torch'
-        Chooses the backend for the algorithm: numpy or torch.
-        If `numpy`, `x0` must be a numpy array and `score` must map
-        numpy array to numpy array.
-        If `torch`, `x0` must be a torch tensor and `score` must map
-        torch tensor to torch tensor.
-        If `auto`, the backend is infered from the type of `x0`.
-
-    Returns
-    -------
-    x: torch.tensor or np.ndarray
-        The final positions
-
-    References
-    ----------
-    Q. Liu, D. Wang. Stein variational gradient descent: A general
-    purpose Bayesian inference algorithm, Advances In Neural
-    Information Processing Systems, 2370-2378
-    """
     x_type = type(x0)
     if backend == 'auto':
         if x_type is np.ndarray:
@@ -161,38 +104,6 @@ def gaussian_kernel(x, y, sigma):
 
 def mmd_lbfgs(x0, target_samples, bw=1, max_iter=10000, tol=1e-5,
               store=False):
-    '''Sampling by optimization of the MMD
-
-    This uses target samples from a base distribution and
-    returns new samples by minimizing the maximum mean discrepancy.
-
-    Parameters
-    ----------
-    x0 : torch.tensor, size n_samples x n_features
-        initial positions
-
-    target_samples : torch.tensor, size n_samples x n_features
-        Samples from the target distribution
-
-    bw : float
-        bandwidth of the stein kernel
-
-    max_iter : int
-        max numer of iters
-
-    tol : float
-        tolerance for L-BFGS
-
-    Returns
-    -------
-    x: torch.tensor
-        The final positions
-
-    References
-    ----------
-    M.Arbel, A.Korba, A.Salim, A.Gretton. Maximum mean discrepancy
-    gradient flow, Neurips, 2020.
-    '''
     x = x0.clone().detach().numpy()
     n_samples, p = x.shape
     k_yy = gaussian_kernel(target_samples, target_samples, bw).mean().item()
