@@ -2,12 +2,7 @@
 =======================================
 Bayesian Independent Component Analysis
 =======================================
-"""  # noqa
-
-# Author: Pierre Ablin <pierre.ablin@ens.fr>
-#
-# License: MIT
-
+"""  
 import torch
 import matplotlib.pyplot as plt
 import numpy as np
@@ -80,24 +75,6 @@ def hmc(initial_x,
         step_size,
         num_steps,
         score,energy):
-    """Summary
-
-    Parameters
-    ----------
-    initial_x : tf.Variable
-        Initial sample x ~ p
-    step_size : float
-        Step-size in Hamiltonian simulation
-    num_steps : int
-        Number of steps to take in Hamiltonian simulation
-    log_posterior : str
-        Log posterior (unnormalized) for the target distribution
-
-    Returns
-    -------
-    sample :
-        Sample ~ target distribution
-    """
 
     v0 = torch.randn_like(initial_x)
     x, v = leapfrog_step(initial_x,
