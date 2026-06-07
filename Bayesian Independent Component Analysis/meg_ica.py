@@ -104,7 +104,7 @@ def one_expe(n, p,i, sigma, bw, n_samples,adap_lr):
     amari_gwg= gwg(A,p, x.clone(), score_gwg, n_epoch=2000, f_iter=20, dim=p ** 2,f_lr=1e-3)
 
     f_lr=1e-3
-    amari_adapgwg= adapgwg(A, p,adap_lr, x.clone(), score_gwg, n_epoch=2000, f_iter=20, dim=p ** 2, f_lr=f_lr)  # better
+    amari_adapgwg= adapgwg(A, p,adap_lr, x.clone(), score_gwg, n_epoch=2000, f_iter=20, dim=p ** 2, f_lr=f_lr) 
 
 #################################################################
 
