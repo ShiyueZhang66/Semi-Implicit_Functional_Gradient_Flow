@@ -5,7 +5,7 @@ Bayesian Independent Component Analysis
 """  
 import torch
 from contenders import svgd
-from utils import semigwg,gwg,adasemigwg,adapgwg
+from utils import semigwg,gwg,adasemigwg,adapgwg,sgld
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -106,6 +106,8 @@ def one_expe(n, p,i, sigma, bw, n_samples,adap_lr):
     f_lr=1e-3
     amari_adapgwg= adapgwg(A, p,adap_lr, x.clone(), score_gwg, n_epoch=2000, f_iter=20, dim=p ** 2, f_lr=f_lr) 
 
+    amari_sgld = sgld(A, p, x.clone(), score_gwg, n_epoch=3000, f_iter=20, dim=p ** 2, f_lr=1e-3, seed=seed) 
+
 #################################################################
 
     # np.savetxt(
@@ -134,7 +136,8 @@ def one_expe(n, p,i, sigma, bw, n_samples,adap_lr):
         amari_adasemigwg,
         amari_gwg,
         amari_adapgwg,
-        amari_svgd
+        amari_svgd,
+        amari_sgld
     )
 
 
@@ -162,11 +165,13 @@ for p in p_list:
     amari_gwgs = []
     amari_ksds = []
     amari_svgds = []
+    amari_sglds = []
     amari_randoms = []
     x_semigwgs = []
     x_gwgs = []
     x_ksds = []
     x_svgds=[]
+    x_sglds=[]
     x_randoms = []
 
     # adap_lr=0.008
@@ -178,6 +183,7 @@ for p in p_list:
             amari_adasemigwg,
             amari_gwg,
             amari_adapgwg,
-            amari_svgd
+            amari_svgd,
+            amari_sgld
         ) = one_expe(n, p, i,sigma, bw, n_samples,adap_lr=adap_lr)
 
