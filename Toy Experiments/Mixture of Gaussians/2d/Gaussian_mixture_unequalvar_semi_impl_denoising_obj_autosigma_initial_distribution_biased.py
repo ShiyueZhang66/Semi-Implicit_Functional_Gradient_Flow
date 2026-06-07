@@ -164,6 +164,7 @@ check_frq=10
 initvar=1.0
 
 X_0 = torch.randn(n, 2)
+X_0 = torch.randn(n, 2)*initvar+torch.tensor([1,0])
 X_0 = X_0.to(device)
 # X_0=np.loadtxt(f'../mog_unequalvar_2d_results/2d_l2gf_0_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt')
 # X_0=torch.tensor(X_0,dtype=torch.float32)
