@@ -429,3 +429,57 @@ def adapgwg(A,pdim,adap_lr,x0, score, kernel='gaussian', bw=1.,
 
     return info
 
+###########################
+
+def sgld(A, pdim, x0, score, kernel='gaussian', bw=1.,
+             n_epoch=10000, f_iter=10, dim=64, latent_dim=120, step_size=1e-6, f_lr=1e-3, seed=9876, beta=.5,
+             store=False, verbose=False):
+
+    import torch.nn as nn
+    import torch.optim as optim
+    from tqdm import trange
+    device = torch.device(
+        'cuda') if torch.cuda.is_available() else torch.device('cpu')
+
+    xs = []
+    info = []
+    hmc_amari = []
+
+    ens = []
+
+    timelist = []
+
+    x = x0.clone().to(device)
+
+    start = time()
+
+    for ep in trange(n_epoch):
+
+        dup_x = x.data
+        dup_x.requires_grad_(True)
+
+        noise = torch.randn_like(x).to(device)
+        learn_rate = step_size
+        x = x + learn_rate * score(dup_x) + np.sqrt(
+            2 * learn_rate) * noise
+
+        if (ep % 200 == 0) or (ep == n_epoch - 1):
+            gt = torch.load('hmc_result_dim5_100000_correct_0.0005_1000last.pt')
+            gt_current = gt[0]
+            for k in range(1000):
+                gt_current = torch.cat((gt_current, gt[k]), dim=0)
+            gt_current = gt_current[1:1001, ]
+            detach_x = x.detach().cpu()
+            ens.append(energy_dist(detach_x.numpy(), gt_current.numpy()))
+            end = time()
+            interval = end - start
+            timelist.append(interval)
+    end = time()
+
+    #############################################
+
+    n_samples = x.shape[0]
+    x_test = (x.reshape(n_samples, pdim, pdim)).detach().cpu().numpy()
+    info = [amari_distance(y, A) for y in x_test]
+
+    return info
