@@ -106,29 +106,7 @@ def one_expe(n, p,i, sigma, bw, n_samples,adap_lr):
     f_lr=1e-3
     amari_adapgwg= adapgwg(A, p,adap_lr, x.clone(), score_gwg, n_epoch=2000, f_iter=20, dim=p ** 2, f_lr=f_lr) 
 
-    amari_sgld = sgld(A, p, x.clone(), score_gwg, n_epoch=3000, f_iter=20, dim=p ** 2, f_lr=1e-3, seed=seed) 
-
-#################################################################
-
-    # np.savetxt(
-    #     f'meg_ica_results_post_samples_comparison/hmc_result_dim5_100000_correct_0.0005_50000post_amari_svgd_ep2000_samp_{n_samples}_stepsize_0.1_{i}.txt',
-    #     amari_svgd)
-    #
-    # np.savetxt(
-    #     f'meg_ica_results_post_samples_comparison/hmc_result_dim5_100000_correct_0.0005_50000post_amari_semigwg_ep2000_samp_{n_samples}_semisigma_0.03_ada_1e-6_{i}.txt',
-    #     amari_adasemigwg)
-    #
-    # np.savetxt(
-    #     f'meg_ica_results_post_samples_comparison/hmc_result_dim5_100000_correct_0.0005_50000post_amari_semigwg_ep2000_samp_{n_samples}_semisigma_0.03_{i}.txt',
-    #     amari_semigwg)
-    #
-    # np.savetxt(
-    #     f'meg_ica_results_post_samples_comparison/hmc_result_dim5_100000_correct_0.0005_50000post_amari_gwg_ep2000_samp_{n_samples}_{i}.txt',
-    #     amari_gwg)
-    #
-    # np.savetxt(
-    #     f'meg_ica_results_post_samples_comparison/hmc_result_dim5_100000_correct_0.0005_50000post_amari_adapgwg_p_adap{adap_lr}_f_lr{f_lr}_ep2000_samp_{n_samples}_{i}.txt',
-    #     amari_adapgwg)
+    amari_sgld = sgld(A, p, x.clone(), score_gwg, n_epoch=3000, f_iter=20, dim=p ** 2, f_lr=1e-3) 
 
 
     return (
