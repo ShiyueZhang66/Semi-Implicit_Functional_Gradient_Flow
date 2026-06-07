@@ -176,7 +176,7 @@ class GWGrunner(object):
         # torch.save(np.array(rmse_list), os.path.join(self.config.log, "rmse_list_p={}_1.pt".format("p_ada" if self.config.optim.p_adaptive else self.p_norm.item())))
         # torch.save(np.array(ll_list), os.path.join(self.config.log, "ll_list_p={}_1.pt".format("p_ada" if self.config.optim.p_adaptive else self.p_norm.item())))
         # torch.save(np.array(p_norm_list), os.path.join(self.config.log, "p_norm_list_1.pt"))
-        #
+
 
 ###########################################################################
 
