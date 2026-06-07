@@ -161,7 +161,7 @@ n = 1000
 t1 = time.time()
 check_frq=10
 
-initvar=0.5
+initvar=1.0
 
 X_0 = torch.randn(n, 2)
 X_0 = X_0.to(device)
