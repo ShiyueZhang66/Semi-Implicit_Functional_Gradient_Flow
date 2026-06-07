@@ -105,7 +105,6 @@ class SGLD_BNN(object):
         # torch.save(np.array(rmse_list), os.path.join(self.config.log, 'sgld_rmse_list_1.pt'))
 
 
-
 def main():
     iter_n=10
     path='protein'
