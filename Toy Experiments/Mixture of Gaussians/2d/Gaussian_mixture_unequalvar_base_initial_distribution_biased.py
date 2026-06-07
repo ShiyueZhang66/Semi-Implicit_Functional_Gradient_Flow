@@ -25,18 +25,6 @@ import random
 import seaborn as sns
 
 
-seed = 1244
-random.seed(seed)
-os.environ['PYTHONHASHSEED'] = str(seed)
-np.random.seed(seed)
-torch.manual_seed(seed)
-torch.cuda.manual_seed(seed)
-torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
-torch.backends.cudnn.benchmark = False
-torch.backends.cudnn.deterministic = True
-
-
-
 import torch.distributions as D
 K = 5
 torch.manual_seed(1)
@@ -46,35 +34,18 @@ comp = D.Independent(D.Normal(
 gmm = D.MixtureSameFamily(mix, comp)
 sample = gmm.sample((2000,)).cpu()
 
-plt.plot(sample[:,0],sample[:,1],'.')
-plt.show()
+#####################
 
+seed = 1214
+random.seed(seed)
+os.environ['PYTHONHASHSEED'] = str(seed)
+np.random.seed(seed)
+torch.manual_seed(seed)
+torch.cuda.manual_seed(seed)
+torch.cuda.manual_seed_all(seed)  # if you are using multi-GPU.
+torch.backends.cudnn.benchmark = False
+torch.backends.cudnn.deterministic = True
 
-############
-# groundtruth=gmm.sample((1000,)).cpu()
-#
-# fig, ax = plt.subplots(figsize=(5, 5))
-# bbox = [-5, 5, -5, 5]
-# xx, yy = np.mgrid[bbox[0]:bbox[1]:100j, bbox[2]:bbox[3]:100j]
-# positions = np.vstack([xx.ravel(), yy.ravel()])
-# f = -np.log(-np.reshape(gmm.log_prob(torch.Tensor(positions.T).to(device)).cpu().numpy(), xx.shape))
-#
-# cxx, cyy = np.mgrid[bbox[0]:bbox[1]:30j, bbox[2]:bbox[3]:30j]
-# ax.axis(bbox)
-# ax.set_aspect(abs(bbox[1] - bbox[0]) / abs(bbox[3] - bbox[2]))
-# cfset = ax.contourf(xx, yy, f, cmap='Blues', alpha=0.8, levels=11)
-# groundtruth_plot=groundtruth
-# ax.plot(groundtruth_plot[:, 0], groundtruth_plot[:, 1], '.', markersize=2, color='#ff7f0e')
-#
-# plt.xticks(fontsize=15)
-# plt.yticks(fontsize=15)
-# # ax.set_title(f"Multimodal-{i+1}-L2GF", fontsize=20, y=1.04)
-# ax.set_title(f"Groundtruth", fontsize=20, y=1.04)
-#
-# fig.tight_layout()
-# plt.subplots_adjust(wspace=0.1, hspace=0.05)
-# plt.figure_format = 'retina'
-# plt.savefig(f'../mog_unequalvar_2d_results/2d_groundtruth.pdf', bbox_inches='tight', pad_inches=0.1)
 
 ##################################################################################
 
@@ -127,9 +98,6 @@ class PFGfast:
     self.optim2.zero_grad()
     score_func = score_func.to(device)
 
-    # H_2
-    # loss = (-torch.sum(score_func*S) - torch.sum(divergence_approx(S,X)) + 0.5*torch.trace(H.matmul(S.T).matmul(S)))/S.shape[0]
-
     # lp
     score_func=score_func.to(device)
     loss = (-torch.sum(score_func * S) - torch.sum(divergence_approx(S, X)) + torch.norm(S, p=p_norm)**p_norm /p_norm   )/ S.shape[0]
@@ -140,11 +108,8 @@ class PFGfast:
     scoredifference = torch.abs(S) ** p_norm
     log_scoredifference = torch.log(1 / (torch.abs(S) ** (p_norm - 1)))
 
-    stepsize = 0.00000005
+    stepsize = 1e-6
     p_update=stepsize * ((1 / p_norm ** 2) * torch.sum(scoredifference) - (1 / ((p_norm - 1) ** 2 * p_norm)) * torch.sum(scoredifference * log_scoredifference)) / S.shape[0]
-
-    # p_adam
-    # self.p_update=stepsize *((1 / p_norm ** 2) * torch.sum(scoredifference) - (1 / ((p_norm - 1) ** 2 * p_norm)) * torch.sum(scoredifference * log_scoredifference)) / S.shape[0]
 
     if p_norm - p_update > 1.1:
         p_norm -= p_update
@@ -171,14 +136,13 @@ t1 = time.time()
 
 check_frq=10
 
-initvar=1.0
+initvar=0.5
 
-X_0 = torch.randn(n, 2)
-X_0 = torch.randn(n, 2)*initvar+torch.tensor([1,0])
+sample_kl_list=[]
+
+
+X_0 = torch.randn(n, 2)+torch.tensor([1,0])
 X_0 = X_0.to(device)
-# X_0=np.loadtxt(f'../mog_unequalvar_2d_results/2d_l2gf_0_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt')
-# X_0=torch.tensor(X_0,dtype=torch.float32)
-# X_0 = X_0.to(device)
 
 h = 32
 net = nn.Sequential(
@@ -198,16 +162,12 @@ Epoch=2300
 for p in p_list:
     X=X_0.clone()
     X_plot = X.detach().cpu().numpy()
-    # np.savetxt(
-    #     # f"../mog_unequalvar_2d_results/2d_adagwg_0_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt",
-    #     f"../mog_unequalvar_2d_results/2d_l2gf_0_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt",
-    #     X_plot)
     net.load_state_dict(torch.load("net.pth"))
     net = net.to(device)
 
-    # optim1 = optim.SGD([X], lr=5e-1, momentum=0.)#l2gf
-    optim1 = optim.SGD([X], lr=5e-1, momentum=0.)  # adagwg
+    optim1 = optim.SGD([X], lr=5e-1, momentum=0.)
     optim2 = optim.SGD(net.parameters(), lr=1e-3, momentum=0.9, nesterov=1)
+
     p_update=0
 
     pfg = PFGfast(gmm, net, optim1, optim2)
@@ -225,6 +185,7 @@ for p in p_list:
     countlist = np.zeros(3)
 
     for i in range(Epoch):
+
         for j in range(5):
             if i > 5: #adaptive p
             # if i > 50000000: #non-adaptive p
@@ -242,28 +203,7 @@ for p in p_list:
 
             X_plot = X.detach().cpu().numpy()
 
-            # np.savetxt(
-            #     # f"../mog_unequalvar_2d_results/2d_adagwg_{i + 1}_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt",
-            #     f"../mog_unequalvar_2d_results/2d_l2gf_{i + 1}_samples_fortraj_sameseed_1244_biased_var_{initvar}.txt",
-            #     X_plot)
-
-            # if (i+1)==1600:
-            #     np.savetxt(
-            #         f"../mog_unequalvar_2d_results/2d_l2gf_{i+1}_samples.txt",
-            #         X_plot)
-            #
-            # if (i+1)==2000:
-            #     np.savetxt(
-            #         f"../mog_unequalvar_2d_results/2d_l2gf_{i+1}_samples.txt",
-            #         X_plot)
-
-    print(kl_list)
-    print(count)
-    print(p)
-    print(countlist)
-
 ax.legend()
-# plt.savefig('particle_vi_mog_kl.jpg', dpi=600)
 plt.show()
 
 t2 = time.time()
