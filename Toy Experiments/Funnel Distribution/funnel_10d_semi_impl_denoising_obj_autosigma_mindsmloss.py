@@ -225,8 +225,7 @@ for p in p_list:
         noise=torch.randn(n,d).to(device)
         Z = X + noise * semi_sigma
         for j in range(5):
-            # if i > 5: #adaptive p
-            if i > 50000000: #non-adaptive p
+            if i > 50000000:
                 flag, p_nm= pfg.score_step(Z,X, p)
                 p = p_nm
             else:
@@ -237,10 +236,6 @@ for p in p_list:
         optim3.zero_grad()
         loss.backward()
         optim3.step()
-
-        # if semi_sigma>0.01:
-        #     semi_sigma=semi_sigma-0.0001
-        #     # semi_sigma = semi_sigma - 0.001
 
         X=pfg.step(Z,X,semi_sigma)
 

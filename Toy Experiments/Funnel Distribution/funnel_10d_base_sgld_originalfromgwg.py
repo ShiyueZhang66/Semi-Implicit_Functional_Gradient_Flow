@@ -152,6 +152,7 @@ n = 1000
 t1 = time.time()
 check_frq=100
 
+
 X_0 = torch.randn(n, 10)
 X_0 = X_0.to(device)
 
@@ -187,30 +188,24 @@ for p in p_list:
     kl = pfg.kl_distance()
     kl_list[0] = kl
 
-    for i in range(100):
-        pfg.score_step(X, p)
-    count=0
-
-    print('ok')
-
     countlist = np.zeros(3)
 
+    epsilon_0 = 0.01
+    alpha = 0
+
     for i in range(Epoch):
-        for j in range(5):
-            if i > 100:  # adaptive p
-            # if i > 50000: #non-adaptive p
-                flag, p_nm = pfg.score_step(X, p)
-                p=p_nm
-
-            else:
-                flag, p_nm=pfg.score_step(X, p)
-
-        pfg.step(X)
+        X = X.requires_grad_(True)
+        log_prob = funnel.log_prob(X)
+        score_func = torch.autograd.grad(log_prob.sum(), X)[0].detach()
+        learn_rate = np.max((epsilon_0 / (i + 1) ** alpha, 1e-8))
+        X = X+ learn_rate / 2 * score_func + np.sqrt(
+            learn_rate) * torch.randn([X.shape[0], X.shape[1]])
 
         if (i + 1) % check_frq == 0:
             kl = pfg.kl_distance()
             kl_list[(i + 1) //
                     check_frq] = kl
+
 
 t2 = time.time()
 print(f'Computation Time: {t2-t1}')

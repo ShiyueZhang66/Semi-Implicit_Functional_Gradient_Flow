@@ -152,7 +152,10 @@ n = 1000
 t1 = time.time()
 check_frq=100
 
-X_0 = torch.randn(n, 10)
+# X_0 = torch.randn(n, 10)
+# X_0 = X_0.to(device)
+X_0=np.loadtxt(f'../funnel_code/funnel_results_target1000/10d_svgd_1000_samples_500_seed_{seed}.txt')
+X_0=torch.tensor(X_0,dtype=torch.float32)
 X_0 = X_0.to(device)
 
 h = 600
@@ -169,6 +172,7 @@ ax = fig.add_subplot()
 
 p_list=[2.0]
 
+# Epoch=501
 Epoch=10001
 
 for p in p_list:
@@ -187,30 +191,39 @@ for p in p_list:
     kl = pfg.kl_distance()
     kl_list[0] = kl
 
-    for i in range(100):
-        pfg.score_step(X, p)
-    count=0
-
-    print('ok')
-
     countlist = np.zeros(3)
 
     for i in range(Epoch):
-        for j in range(5):
-            if i > 100:  # adaptive p
-            # if i > 50000: #non-adaptive p
-                flag, p_nm = pfg.score_step(X, p)
-                p=p_nm
+        X = X.requires_grad_(True)
+        log_prob = funnel.log_prob(X)
+        score_func = torch.autograd.grad(log_prob.sum(), X)[0].detach()
 
-            else:
-                flag, p_nm=pfg.score_step(X, p)
 
-        pfg.step(X)
+        def compute_kernel(x):
+            x_y = x.unsqueeze(1) - x.unsqueeze(0)  # [N, N, d]
+            pairwise_dists = torch.norm(x_y, dim=-1) ** 2
+            h = torch.median(pairwise_dists)
+            h = torch.sqrt(h / np.log(x.shape[0] + 1))
+
+            Kxy = torch.exp(-pairwise_dists / h ** 2)  # [N, N]
+            dxKxy = torch.mul(x_y, Kxy.unsqueeze(2)) / (h ** 2 / 2)  # [N, N, d]
+            dxKxy = dxKxy.mean(1)
+
+            return Kxy.to(device), dxKxy.to(device)
+
+        svgd_particle_stepsize = 5e-2
+        Kxy, dxKxy = compute_kernel(X)
+        target_s = score_func
+        v = torch.matmul(Kxy, target_s) / n + dxKxy
+
+        X = X + v * svgd_particle_stepsize
 
         if (i + 1) % check_frq == 0:
             kl = pfg.kl_distance()
             kl_list[(i + 1) //
                     check_frq] = kl
+        if (i + 1) == 500:
+            X_plot = X.detach().cpu().numpy()
 
 t2 = time.time()
 print(f'Computation Time: {t2-t1}')
