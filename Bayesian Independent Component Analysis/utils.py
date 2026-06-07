@@ -432,7 +432,7 @@ def adapgwg(A,pdim,adap_lr,x0, score, kernel='gaussian', bw=1.,
 ###########################
 
 def sgld(A, pdim, x0, score, kernel='gaussian', bw=1.,
-             n_epoch=10000, f_iter=10, dim=64, latent_dim=120, step_size=1e-6, f_lr=1e-3, seed=9876, beta=.5,
+             n_epoch=10000, f_iter=10, dim=64, latent_dim=120, step_size=1e-6, f_lr=1e-3, beta=.5,
              store=False, verbose=False):
 
     import torch.nn as nn
